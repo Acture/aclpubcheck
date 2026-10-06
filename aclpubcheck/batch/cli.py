@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import argparse
 import asyncio
+import importlib.util
 import json
 import os
 import signal
@@ -40,6 +41,7 @@ _BATCH_ONLY = (
     "papers_dir",
     "summary",
     "check_references",
+    "tui",
 )
 
 
@@ -68,6 +70,9 @@ def add_arguments(parser: argparse.ArgumentParser) -> None:
         help="also run the bibliography checks, which only produce warnings; unless "
         "--disable_name_check is given they include the citation name check, which uploads "
         "each PDF to ref.scholarcy.com",
+    )
+    group.add_argument(
+        "--tui", action="store_true", help="interactive terminal view (needs textual)"
     )
 
 
@@ -176,10 +181,19 @@ async def _run_plain(job: Job, sink: EventSink) -> tuple[PaperResult, ...]:
                 loop.remove_signal_handler(number)
 
 
+def _interactive() -> bool:
+    # Textual draws on stderr
+    stderr = sys.__stderr__
+    return sys.stdin.isatty() and sys.stdout.isatty() and stderr is not None and stderr.isatty()
+
+
 def run(args: argparse.Namespace, config: CheckConfig) -> int:
     """Run a batch from parsed arguments; returns the process exit code."""
     if args.num_workers < 1:
         print("--num_workers must be at least 1", file=sys.stderr)
+        return EXIT_USAGE
+    if args.tui and _interactive() and importlib.util.find_spec("textual") is None:
+        print("--tui needs textual: pip install textual", file=sys.stderr)
         return EXIT_USAGE
     args.output_dir = resolve_output_dir(args)
     summary = args.summary or args.output_dir / "summary.csv"
@@ -191,7 +205,14 @@ def run(args: argparse.Namespace, config: CheckConfig) -> int:
     print(f"Saving reports to {args.output_dir}", file=sys.stderr)
     job = make_job(args, config, summary)
     try:
-        results = asyncio.run(_run_plain(job, ConsoleSink()))
+        if args.tui and _interactive():
+            from .tui import run_tui
+
+            results = run_tui(job, title=f"aclpubcheck: {args.papers_yml}")
+        else:
+            if args.tui:
+                print("not an interactive terminal; showing plain progress", file=sys.stderr)
+            results = asyncio.run(_run_plain(job, ConsoleSink()))
     except ManifestError as error:
         print(error, file=sys.stderr)
         return EXIT_USAGE

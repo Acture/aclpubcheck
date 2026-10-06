@@ -113,6 +113,8 @@ Each row has the paper id, title, type, authors and emails, the status, the erro
 
 The summary is rewritten as papers change state (at most about once a second). Ctrl-C cancels the run: unfinished papers are marked `cancelled` and the command exits with status 130. If the process is killed outright, the rows it did not finish still show `queued` or `checking`. The exit status is 0 when every paper was processed, whatever the results; 1 when the input lists no papers, or when the run fails unexpectedly (with a traceback); 2 for usage and input errors, including an unreadable `papers.yml` and an unwritable output directory; and 130 when cancelled.
 
+Add `--tui` (with `pip install textual`) for an interactive view that lists every paper's status and lets you filter to the problem papers and inspect their errors and report paths.
+
 Known limitation: a check has no time or memory limit, so a pathological PDF can occupy a worker for a long time.
 
 

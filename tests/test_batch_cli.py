@@ -192,6 +192,13 @@ class OptionsTest(unittest.TestCase):
         self.assertIn("expected a list of papers", result.stderr)
         self.assertNotIn("Traceback", result.stderr)
 
+    def test_tui_without_a_terminal_falls_back_to_plain_progress(self) -> None:
+        write_single(self.root)
+        result = aclpubcheck(self.root, "--papers-yml", "papers.yml", "--tui")
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        self.assertIn("not an interactive terminal", result.stderr)
+        self.assertIn("[1/1] 1 passed", result.stderr)
+
     def test_summary_cells_cannot_start_a_formula(self) -> None:
         title = '=HYPERLINK("x")'
         write_single(self.root, title=title, authors=[{"name": "+cmd"}])

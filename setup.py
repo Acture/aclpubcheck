@@ -19,6 +19,9 @@ install_requires = [
 setup(
 	name="aclpubcheck",
 	install_requires=install_requires,
+	extras_require={
+		"tui": ["textual"],
+	},
 	version="0.1",
 	python_requires=">=3.10",
 	scripts=[],

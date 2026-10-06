@@ -25,7 +25,7 @@ jobs:
           python-version: ${{ matrix.python-version }}
           activate-environment: true
           enable-cache: false
-      - run: uv pip install .
+      - run: uv pip install ".[tui]"
       # real papers for tests/test_performance.py: the aclpub2 SIGDIAL example (41 PDFs),
       # pinned so the expected reports never change under the tests
       - name: Fetch the aclpub2 SIGDIAL example

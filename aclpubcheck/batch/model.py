@@ -225,7 +225,7 @@ class RunFinished:
 
 Event = StageChanged | RunStarted | PaperChanged | RunFinished
 EventSink = Callable[[Event], None]
-# a whole batch run (loading included), driven by the console
+# a whole batch run (loading included), driven by the console or the TUI
 Job = Callable[[EventSink, asyncio.Event], Awaitable[tuple[PaperResult, ...]]]
 
 
