@@ -36,3 +36,54 @@ jobs:
       - run: python -m unittest discover -s tests -v
         env:
           ACLPUBCHECK_TEST_PAPERS_YML: ${{ runner.temp }}/aclpub2/examples/sigdial/papers.yml
+
+  # the numbers in benchmarks/results/ come from this job, so they are all measured on the
+  # same kind of runner; on a pull request it also times the base branch on the same runner
+  benchmark:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      # the pull request's own head rather than the temporary merge commit, so the commit
+      # recorded with the numbers stays on a branch
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+      - uses: astral-sh/setup-uv@v10.1.0
+        with:
+          python-version: "3.12"
+          activate-environment: true
+          enable-cache: false
+      - run: uv pip install .
+      - name: Fetch the aclpub2 SIGDIAL example
+        run: |
+          git clone --quiet --filter=blob:none --no-checkout https://github.com/rycolab/aclpub2.git "$RUNNER_TEMP/aclpub2"
+          git -C "$RUNNER_TEMP/aclpub2" sparse-checkout set examples/sigdial
+          git -C "$RUNNER_TEMP/aclpub2" checkout --quiet 4fd082b0ec502a764e211fdf868d51d839225891
+      - name: Install the base branch
+        if: github.event_name == 'pull_request'
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+        run: |
+          git fetch --quiet --depth 1 origin "$BASE_SHA"
+          git worktree add --quiet --detach "$RUNNER_TEMP/base" "$BASE_SHA"
+          uv venv --quiet "$RUNNER_TEMP/base-venv"
+          uv pip install --python "$RUNNER_TEMP/base-venv/bin/python" "$RUNNER_TEMP/base"
+      - name: Benchmark
+        shell: bash
+        env:
+          BASE_REF: ${{ github.base_ref }}
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+        run: |
+          base=()
+          if [ -n "$BASE_SHA" ]; then
+            base=(--base-python "$RUNNER_TEMP/base-venv/bin/python" --base-label "$BASE_REF@${BASE_SHA::7}")
+          fi
+          mkdir -p "$RUNNER_TEMP/benchmark"
+          python benchmarks/bench_checks.py --label github-ubuntu-latest-sigdial \
+            --papers-yml "$RUNNER_TEMP/aclpub2/examples/sigdial/papers.yml" --workers 1,4 \
+            --results-dir "$RUNNER_TEMP/benchmark" "${base[@]}" | tee "$RUNNER_TEMP/benchmark/table.txt"
+          { echo '```'; cat "$RUNNER_TEMP/benchmark/table.txt"; echo '```'; } >> "$GITHUB_STEP_SUMMARY"
+      - uses: actions/upload-artifact@v7
+        with:
+          name: benchmark
+          path: ${{ runner.temp }}/benchmark/
