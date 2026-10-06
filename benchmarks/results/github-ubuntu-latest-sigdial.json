@@ -1,0 +1,422 @@
+{
+  "label": "github-ubuntu-latest-sigdial",
+  "created_at": "2026-10-06T15:29:57+00:00",
+  "argv": [
+    "--label",
+    "github-ubuntu-latest-sigdial",
+    "--papers-yml",
+    "/home/runner/work/_temp/aclpub2/examples/sigdial/papers.yml",
+    "--workers",
+    "1,4",
+    "--results-dir",
+    "/home/runner/work/_temp/benchmark",
+    "--base-python",
+    "/home/runner/work/_temp/base-venv/bin/python",
+    "--base-label",
+    "main@1e33bca"
+  ],
+  "machine": {
+    "load_average_before": [
+      0.525390625,
+      0.16357421875,
+      0.0576171875
+    ],
+    "load_average_after": [
+      3.3505859375,
+      1.7431640625,
+      0.798828125
+    ],
+    "platform": "Linux-6.17.0-1022-azure-x86_64-with-glibc2.39",
+    "arch": "x86_64",
+    "cpu": "AMD EPYC 7763 64-Core Processor",
+    "cpu_count": 4,
+    "usable_cpus": 4,
+    "python": "3.12.3",
+    "python_implementation": "CPython"
+  },
+  "packages": {
+    "aclpubcheck": "0.1",
+    "pdfplumber": "0.11.10",
+    "pdfminer.six": "20260107",
+    "pypdfium2": "5.14.0",
+    "numpy": "2.5.3",
+    "pillow": "12.3.0"
+  },
+  "aclpubcheck": {
+    "commit": "9edb957fbad8f6b61233cccb2101af156ec078bd",
+    "dirty": false,
+    "module": "aclpubcheck"
+  },
+  "corpus": {
+    "source": "/home/runner/work/_temp/aclpub2/examples/sigdial/papers.yml",
+    "papers": 41,
+    "checked": 41,
+    "pages": 351
+  },
+  "import_formatchecker": [
+    {
+      "import_s": 0.17446997899999417,
+      "process_s": 0.22041423600001053
+    },
+    {
+      "import_s": 0.17047882299999628,
+      "process_s": 0.21412823900000433
+    },
+    {
+      "import_s": 0.1719459669999992,
+      "process_s": 0.21333896300001243
+    }
+  ],
+  "formatter_construction": {
+    "lazy_formatter_s": 7.820000007541239e-07,
+    "lazy_formatter_repeat": 1000,
+    "eager_name_check": {
+      "seconds": 2.322103274,
+      "peak_rss_mb": 915.03125
+    }
+  },
+  "run_check": {
+    "per_paper": {
+      "min": 0.4942564090000019,
+      "median": 1.30913061199999,
+      "max": 4.4847424169999925
+    },
+    "by_kind": {
+      "pdf": {
+        "min": 0.4942564090000019,
+        "median": 1.30913061199999,
+        "max": 4.4847424169999925
+      }
+    },
+    "papers": [
+      {
+        "paper_id": "2",
+        "kind": "pdf",
+        "pages": 7,
+        "seconds": 0.9318942329999942,
+        "status": "passed"
+      },
+      {
+        "paper_id": "4",
+        "kind": "pdf",
+        "pages": 11,
+        "seconds": 1.30913061199999,
+        "status": "passed"
+      },
+      {
+        "paper_id": "7",
+        "kind": "pdf",
+        "pages": 4,
+        "seconds": 0.49616863900000396,
+        "status": "passed"
+      },
+      {
+        "paper_id": "8",
+        "kind": "pdf",
+        "pages": 14,
+        "seconds": 1.805802564000004,
+        "status": "violations"
+      },
+      {
+        "paper_id": "9",
+        "kind": "pdf",
+        "pages": 12,
+        "seconds": 2.2361454589999994,
+        "status": "violations"
+      },
+      {
+        "paper_id": "11",
+        "kind": "pdf",
+        "pages": 10,
+        "seconds": 1.5183167790000027,
+        "status": "violations"
+      },
+      {
+        "paper_id": "12",
+        "kind": "pdf",
+        "pages": 5,
+        "seconds": 0.6835901980000045,
+        "status": "passed"
+      },
+      {
+        "paper_id": "16",
+        "kind": "pdf",
+        "pages": 10,
+        "seconds": 1.9094515780000023,
+        "status": "violations"
+      },
+      {
+        "paper_id": "17",
+        "kind": "pdf",
+        "pages": 11,
+        "seconds": 1.4609383900000097,
+        "status": "passed"
+      },
+      {
+        "paper_id": "18",
+        "kind": "pdf",
+        "pages": 10,
+        "seconds": 1.3811733689999954,
+        "status": "passed"
+      },
+      {
+        "paper_id": "22",
+        "kind": "pdf",
+        "pages": 9,
+        "seconds": 1.2187902539999982,
+        "status": "violations"
+      },
+      {
+        "paper_id": "24",
+        "kind": "pdf",
+        "pages": 6,
+        "seconds": 0.6523826809999917,
+        "status": "passed"
+      },
+      {
+        "paper_id": "25",
+        "kind": "pdf",
+        "pages": 13,
+        "seconds": 2.000550922000002,
+        "status": "violations"
+      },
+      {
+        "paper_id": "28",
+        "kind": "pdf",
+        "pages": 4,
+        "seconds": 0.5358548800000023,
+        "status": "passed"
+      },
+      {
+        "paper_id": "38",
+        "kind": "pdf",
+        "pages": 6,
+        "seconds": 0.9090920719999929,
+        "status": "passed"
+      },
+      {
+        "paper_id": "41",
+        "kind": "pdf",
+        "pages": 5,
+        "seconds": 0.8639978349999922,
+        "status": "passed"
+      },
+      {
+        "paper_id": "42",
+        "kind": "pdf",
+        "pages": 10,
+        "seconds": 1.3379918600000025,
+        "status": "passed"
+      },
+      {
+        "paper_id": "43",
+        "kind": "pdf",
+        "pages": 6,
+        "seconds": 0.8561330960000078,
+        "status": "passed"
+      },
+      {
+        "paper_id": "44",
+        "kind": "pdf",
+        "pages": 4,
+        "seconds": 0.5154402220000094,
+        "status": "passed"
+      },
+      {
+        "paper_id": "49",
+        "kind": "pdf",
+        "pages": 11,
+        "seconds": 1.3962495160000117,
+        "status": "violations"
+      },
+      {
+        "paper_id": "58",
+        "kind": "pdf",
+        "pages": 13,
+        "seconds": 1.7142727710000116,
+        "status": "violations"
+      },
+      {
+        "paper_id": "60",
+        "kind": "pdf",
+        "pages": 11,
+        "seconds": 1.4706018029999939,
+        "status": "passed"
+      },
+      {
+        "paper_id": "61",
+        "kind": "pdf",
+        "pages": 4,
+        "seconds": 0.7103657680000026,
+        "status": "violations"
+      },
+      {
+        "paper_id": "62",
+        "kind": "pdf",
+        "pages": 4,
+        "seconds": 0.5146823219999987,
+        "status": "passed"
+      },
+      {
+        "paper_id": "63",
+        "kind": "pdf",
+        "pages": 10,
+        "seconds": 1.2571006959999949,
+        "status": "violations"
+      },
+      {
+        "paper_id": "71",
+        "kind": "pdf",
+        "pages": 4,
+        "seconds": 0.6381000530000023,
+        "status": "violations"
+      },
+      {
+        "paper_id": "72",
+        "kind": "pdf",
+        "pages": 4,
+        "seconds": 0.4942564090000019,
+        "status": "passed"
+      },
+      {
+        "paper_id": "76",
+        "kind": "pdf",
+        "pages": 11,
+        "seconds": 1.3428569459999977,
+        "status": "passed"
+      },
+      {
+        "paper_id": "78",
+        "kind": "pdf",
+        "pages": 13,
+        "seconds": 2.0213303640000078,
+        "status": "passed"
+      },
+      {
+        "paper_id": "79",
+        "kind": "pdf",
+        "pages": 10,
+        "seconds": 1.6300950539999945,
+        "status": "passed"
+      },
+      {
+        "paper_id": "81",
+        "kind": "pdf",
+        "pages": 11,
+        "seconds": 1.6930268710000007,
+        "status": "passed"
+      },
+      {
+        "paper_id": "83",
+        "kind": "pdf",
+        "pages": 12,
+        "seconds": 4.4847424169999925,
+        "status": "violations"
+      },
+      {
+        "paper_id": "87",
+        "kind": "pdf",
+        "pages": 7,
+        "seconds": 0.9066727359999902,
+        "status": "passed"
+      },
+      {
+        "paper_id": "89",
+        "kind": "pdf",
+        "pages": 7,
+        "seconds": 0.8355754579999939,
+        "status": "passed"
+      },
+      {
+        "paper_id": "92",
+        "kind": "pdf",
+        "pages": 6,
+        "seconds": 0.7335411109999939,
+        "status": "passed"
+      },
+      {
+        "paper_id": "94",
+        "kind": "pdf",
+        "pages": 11,
+        "seconds": 1.5584173009999915,
+        "status": "violations"
+      },
+      {
+        "paper_id": "97",
+        "kind": "pdf",
+        "pages": 7,
+        "seconds": 0.855051816999989,
+        "status": "passed"
+      },
+      {
+        "paper_id": "98",
+        "kind": "pdf",
+        "pages": 14,
+        "seconds": 2.1011780040000048,
+        "status": "violations"
+      },
+      {
+        "paper_id": "100",
+        "kind": "pdf",
+        "pages": 4,
+        "seconds": 0.5868895469999984,
+        "status": "passed"
+      },
+      {
+        "paper_id": "102",
+        "kind": "pdf",
+        "pages": 10,
+        "seconds": 1.411280696999981,
+        "status": "violations"
+      },
+      {
+        "paper_id": "103",
+        "kind": "pdf",
+        "pages": 10,
+        "seconds": 2.299642681999984,
+        "status": "violations"
+      }
+    ]
+  },
+  "run_batch": [
+    {
+      "workers": 1,
+      "repeat": 1,
+      "wall_s": 52.7306902,
+      "checked": 41,
+      "first_result_s": 1.0901934450000113,
+      "busy_s": 52.319618055999825,
+      "papers_per_s": 0.7775358115832135,
+      "concurrency": 0.9922043094364774
+    },
+    {
+      "workers": 4,
+      "repeat": 1,
+      "wall_s": 23.91882108600001,
+      "checked": 41,
+      "first_result_s": 1.2726620189999949,
+      "busy_s": 89.47480518299997,
+      "papers_per_s": 1.7141313049077416,
+      "concurrency": 3.740769867431749
+    }
+  ],
+  "results_identical_across_workers": true,
+  "path_mode": {
+    "base": "main@1e33bca",
+    "runs": [
+      {
+        "workers": 1,
+        "base_s": 151.370475499,
+        "head_s": 52.54985275900003,
+        "speedup": 2.8805118863644257
+      },
+      {
+        "workers": 4,
+        "base_s": 67.10298570399999,
+        "head_s": 23.671118051000008,
+        "speedup": 2.8348042352467235
+      }
+    ],
+    "reports_match_base": true
+  }
+}

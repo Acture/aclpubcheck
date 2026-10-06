@@ -31,6 +31,29 @@ Each results file also records:
 
 `bench_checks.py` writes `results/<label>.json`. The label names the machine and the corpus; CI uses `github-ubuntu-latest-sigdial`, the aclpub2 SIGDIAL example at commit 4fd082b (41 papers), the test data suggested in acl-org/aclpubcheck#87. Each CI run shows the table in its summary and uploads the JSON as the `benchmark` artifact. The file committed here is that artifact from a run on the commit it records; git history keeps the earlier ones.
 
+### SIGDIAL on `ubuntu-latest`
+
+`results/github-ubuntu-latest-sigdial.json` comes from the `benchmark` job of CI run 37486891443, on commit 9edb957 of acl-org/aclpubcheck#89, with main at 1e33bca timed on the same runner: AMD EPYC 7763, 4 CPUs, Python 3.12.3, load average 0.5 before the run.
+
+| | main | this checkout |
+| --- | ---: | ---: |
+| path mode, 1 worker | 151.4 s | 52.5 s (2.88x) |
+| path mode, 4 workers | 67.1 s | 23.7 s (2.83x) |
+| batch mode, 1 worker | | 52.7 s |
+| batch mode, 4 workers | | 23.9 s (2.20x over 1 worker) |
+
+| measurement | result |
+| --- | --- |
+| `run_check` per paper, in-process | median 1.31 s (min 0.49, max 4.49) |
+| `PDFNameCheck()`, which every `Formatter()` used to build | 2.32 s, peak memory 915 MB |
+
+What this shows:
+
+- **The reports are identical to main's** for all 41 papers, and batch reports are identical to path mode; `tests/test_performance.py` checks the latter in every CI run. The run ends 25 passed and 16 violations.
+- **The eager name-check build was most of main's time.** 41 papers × 2.32 s is 95 s, close to the 98.9 s that path mode with one worker saves.
+- **Four workers check 2.2x as fast as one on this 4-CPU runner.** Concurrency reaches 3.74, so all four checks run at once, but each takes longer than when it runs alone.
+- **The example's paper types are not reliable.** 13 of its 25 `short` papers are 9 to 14 pages long and fail the page limit. These are long papers labelled `short` in the demo data, not checker errors, and the summary makes that visible at a glance.
+
 ## Running
 
 Run from a checkout with the package installed (`uv pip install -e .` or `pip install -e .`). The script imports the checkout's `aclpubcheck` and takes its synthetic PDFs from `tests/pdf_fixtures.py`.
