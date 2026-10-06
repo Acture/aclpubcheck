@@ -1,6 +1,6 @@
 [build-system]
-requires = ["setuptools>=77"]
-build-backend = "setuptools.build_meta"
+requires = ["uv_build>=0.12.17,<0.13.0"]
+build-backend = "uv_build"
 
 [project]
 name = "aclpubcheck"
@@ -29,5 +29,5 @@ Repository = "https://github.com/acl-org/aclpubcheck"
 [project.scripts]
 aclpubcheck = "aclpubcheck.__main__:main"
 
-[tool.setuptools.packages.find]
-include = ["aclpubcheck*"]
+[tool.uv.build-backend]
+module-root = ""
