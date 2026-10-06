@@ -26,4 +26,13 @@ jobs:
           activate-environment: true
           enable-cache: false
       - run: uv pip install .
+      # real papers for tests/test_performance.py: the aclpub2 SIGDIAL example (41 PDFs),
+      # pinned so the expected reports never change under the tests
+      - name: Fetch the aclpub2 SIGDIAL example
+        run: |
+          git clone --quiet --filter=blob:none --no-checkout https://github.com/rycolab/aclpub2.git "$RUNNER_TEMP/aclpub2"
+          git -C "$RUNNER_TEMP/aclpub2" sparse-checkout set examples/sigdial
+          git -C "$RUNNER_TEMP/aclpub2" checkout --quiet 4fd082b0ec502a764e211fdf868d51d839225891
       - run: python -m unittest discover -s tests -v
+        env:
+          ACLPUBCHECK_TEST_PAPERS_YML: ${{ runner.temp }}/aclpub2/examples/sigdial/papers.yml
