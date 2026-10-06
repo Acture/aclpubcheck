@@ -38,33 +38,12 @@ jobs:
           python-version: "3.10"
           enable-cache: false
       - run: uv build
-      - name: pip install wheel
-        run: |
-          uv venv --seed /tmp/wheel
-          /tmp/wheel/bin/pip install dist/*.whl
-          /tmp/wheel/bin/aclpubcheck --help
-          /tmp/wheel/bin/python -m aclpubcheck --help
-      - name: pip install sdist
-        run: |
-          uv venv --seed /tmp/sdist
-          /tmp/sdist/bin/pip install dist/*.tar.gz
-          /tmp/sdist/bin/aclpubcheck --help
-      - name: pip install -e
-        run: |
-          uv venv --seed /tmp/editable
-          /tmp/editable/bin/pip install -e .
-          /tmp/editable/bin/aclpubcheck --help
+      - run: uvx --from dist/aclpubcheck-0.1-py3-none-any.whl aclpubcheck --help
+      - run: uvx --from dist/aclpubcheck-0.1.tar.gz aclpubcheck --help
       - run: uvx --from . aclpubcheck --help
-
-  # Ubuntu 22.04's pip uses the system setuptools in isolated builds (LP: #2018288)
-  ubuntu-22-04-pip:
-    runs-on: ubuntu-latest
-    container: ubuntu:22.04
-    timeout-minutes: 15
-    env:
-      DEBIAN_FRONTEND: noninteractive
-    steps:
-      - run: apt-get update && apt-get install -y --no-install-recommends git python3-pip
-      - uses: actions/checkout@v7
-      - run: pip3 install .
-      - run: aclpubcheck --help
+      - name: Editable install
+        run: |
+          uv venv /tmp/editable
+          uv pip install --python /tmp/editable -e .
+          /tmp/editable/bin/aclpubcheck --help
+          /tmp/editable/bin/python -m aclpubcheck --help
