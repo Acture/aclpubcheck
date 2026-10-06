@@ -37,6 +37,8 @@ COLUMNS = (
     "pdf_sha256",
     "source",
     "source_id",
+    "revision",
+    "fetched_at",
     "duration_s",
     "input_notes",
 )
@@ -82,6 +84,8 @@ def summary_row(result: PaperResult) -> dict[str, str]:
         "pdf_sha256": result.pdf.sha256 if result.pdf else "",
         "source": record.source,
         "source_id": record.source_id,
+        "revision": record.revision,
+        "fetched_at": result.pdf.fetched_at if result.pdf else "",
         "duration_s": f"{result.duration:.2f}" if result.duration is not None else "",
         "input_notes": "; ".join(record.notes),
     }

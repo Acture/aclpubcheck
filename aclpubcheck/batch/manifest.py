@@ -55,6 +55,7 @@ def _author(entry: object, number: int, notes: list[str]) -> Author:
     return Author(
         name=name,
         email=", ".join(emails),
+        openreview_id=text(entry.get("openreview") or entry.get("username")),
     )
 
 
@@ -130,6 +131,8 @@ def load_papers_yml(path: Path) -> list[PaperRecord]:
 
 class LocalPdfProvider:
     """PDFs named by each record's `file`, under one directory."""
+
+    remote = False
 
     def __init__(self, papers_dir: Path) -> None:
         self.papers_dir = papers_dir

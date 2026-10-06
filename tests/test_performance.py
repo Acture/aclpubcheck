@@ -2,7 +2,7 @@
 
 The default tests assert behaviour rather than timings, so they hold on any machine:
 the name-check database is not built per paper, N workers really run N checks at once,
-and batch reports equal those of checking each PDF on its own.
+downloads overlap checks, and batch reports equal those of checking each PDF on its own.
 
 ACLPUBCHECK_TEST_PAPERS_YML (and ACLPUBCHECK_TEST_PAPERS_DIR if the PDFs are not in
 papers/ next to it) adds the equivalence and a timed comparison on real papers. CI sets it
@@ -24,7 +24,9 @@ from unittest.mock import MagicMock, patch
 
 from batch_fixtures import (
     BARRIER_ENV,
+    MARKER_ENV,
     Recorder,
+    wait_for_marker,
     wait_for_peers,
     write_sample,
 )
@@ -32,7 +34,7 @@ from pdf_fixtures import TEXT, write_pdf
 
 from aclpubcheck.batch.check import CheckJob, _name_check, run_check
 from aclpubcheck.batch.manifest import LocalPdfProvider, load_papers_yml
-from aclpubcheck.batch.model import PaperRecord, Status
+from aclpubcheck.batch.model import FetchedPdf, PaperRecord, Status
 from aclpubcheck.batch.runner import RunOptions, run_batch
 from aclpubcheck.formatchecker import Formatter, paper_id, report_names
 
@@ -181,6 +183,34 @@ class ConcurrencyTest(unittest.IsolatedAsyncioTestCase):
             )
         self.assertEqual([r.status for r in results], [Status.PASSED] * len(self.records))
         self.assertEqual(len(list(barrier.iterdir())), len(self.records))  # every check waited
+
+    async def test_downloads_continue_while_papers_are_checked(self) -> None:
+        marker = self.root / "second-pdf-fetched"
+        local = LocalPdfProvider(self.root)
+
+        class Downloads:
+            remote = True
+
+            async def fetch(inner, record: PaperRecord) -> FetchedPdf:
+                pdf = await local.fetch(record)
+                if record.paper_id == "2":
+                    marker.touch()
+                return pdf
+
+        with (
+            patch.dict(os.environ, {MARKER_ENV: str(marker)}),
+            patch("aclpubcheck.batch.runner.run_check", wait_for_marker),
+        ):
+            # one download and one check at a time: the check of paper 1 waits for paper 2's
+            # download, so the run only passes if downloading goes on during checking
+            results = await run_batch(
+                self.records[:2],
+                Downloads(),
+                RunOptions(report_root=self.root / "reports", num_workers=1),
+                Recorder(),
+            )
+        self.assertEqual([r.status for r in results], [Status.PASSED, Status.PASSED])
+        self.assertTrue(marker.exists())
 
 
 PAPERS_YML = os.environ.get("ACLPUBCHECK_TEST_PAPERS_YML")

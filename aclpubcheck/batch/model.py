@@ -47,18 +47,20 @@ class Status(str, enum.Enum):
     """Where a paper is in the run; every expected paper ends in exactly one terminal status."""
 
     QUEUED = "queued"
+    DOWNLOADING = "downloading"
     CHECKING = "checking"
     PASSED = "passed"
     WARNINGS = "warnings"
     VIOLATIONS = "violations"
     MISSING_FILE = "missing_file"
+    DOWNLOAD_FAILED = "download_failed"
     CHECK_ERROR = "check_error"
     INVALID_INPUT = "invalid_input"
     CANCELLED = "cancelled"
 
     @property
     def terminal(self) -> bool:
-        return self not in (Status.QUEUED, Status.CHECKING)
+        return self not in (Status.QUEUED, Status.DOWNLOADING, Status.CHECKING)
 
     @property
     def problem(self) -> bool:
@@ -120,6 +122,7 @@ def paper_type_problem(raw: object, field: str) -> str:
 class Author:
     name: str
     email: str = ""
+    openreview_id: str = ""
 
 
 def metadata_notes(title: str, authors: Sequence[Author]) -> list[str]:
@@ -134,16 +137,17 @@ def metadata_notes(title: str, authors: Sequence[Author]) -> list[str]:
 
 @dataclass(frozen=True)
 class PaperRecord:
-    """One expected paper, as declared by the input (a papers.yml entry)."""
+    """One expected paper, as declared by the input (a papers.yml entry or an OpenReview note)."""
 
     index: int  # position in the input; the key that stays unique when ids repeat
     paper_id: str
     title: str = ""
     paper_type: str | None = None  # normalized; None when the declared type is unusable
     authors: tuple[Author, ...] = ()
-    file: str = ""  # PDF file name declared by the input
-    source: str = ""  # the papers.yml path that was read
-    source_id: str = ""  # the id the input gives the paper
+    file: str = ""  # PDF file name declared by the input; OpenReview declares none
+    source: str = ""  # the papers.yml path that was read, or "openreview:<venue id>"
+    source_id: str = ""  # papers.yml id or OpenReview note id
+    revision: str = ""  # version marker known before fetching, e.g. the OpenReview PDF reference
     problems: tuple[str, ...] = ()  # input errors: the paper cannot be checked
     notes: tuple[str, ...] = ()  # input warnings: the paper is still checked
 
@@ -154,6 +158,11 @@ class FetchedPdf:
 
     path: Path
     sha256: str
+    fetched_at: str = ""  # ISO 8601 time of the download; empty for local files
+
+
+class MissingDependency(ImportError):
+    """An optional extra needed by the chosen option is not installed."""
 
 
 class FetchError(Exception):
@@ -166,6 +175,8 @@ class FetchError(Exception):
 
 class PdfProvider(Protocol):
     """Resolves a record to a local PDF; raises FetchError when it cannot."""
+
+    remote: bool  # fetching downloads, so the paper shows as downloading meanwhile
 
     async def fetch(self, record: PaperRecord) -> FetchedPdf: ...
 

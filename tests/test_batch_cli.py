@@ -256,6 +256,11 @@ class UsageErrorTest(unittest.TestCase):
         (self.root / "papers.yml").write_text("- id: 1\n  title: [unclosed\n", encoding="utf8")
         self.assert_usage_error("cannot read papers", "--papers-yml", "papers.yml")
 
+    def test_zero_download_concurrency(self) -> None:
+        self.assert_usage_error(
+            "must be at least 1", "--papers-yml", "papers.yml", "--download-concurrency", "0"
+        )
+
 
 class StderrReader(threading.Thread):
     """Drains the child's stderr so it never blocks on a full pipe; notes the first progress."""
@@ -322,7 +327,7 @@ class InterruptTest(unittest.TestCase):
         self.assertNotIn("never retrieved", stderr)
         self.assertEqual([row["paper_id"] for row in rows], [str(n) for n in range(self.COPIES)])
         statuses = Counter(row["status"] for row in rows)
-        self.assertFalse({"queued", "checking"} & statuses.keys(), statuses)
+        self.assertFalse({"queued", "downloading", "checking"} & statuses.keys(), statuses)
         self.assertGreater(statuses["cancelled"], 0, statuses)
         self.assertGreater(sum(statuses.values()) - statuses["cancelled"], 0, statuses)
 

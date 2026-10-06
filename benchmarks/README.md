@@ -71,3 +71,57 @@ git -C aclpub2 sparse-checkout set examples/sigdial
 git -C aclpub2 checkout 4fd082b0ec502a764e211fdf868d51d839225891
 # papers.yml is aclpub2/examples/sigdial/papers.yml, the PDFs are in papers/ next to it
 ```
+
+## A real OpenReview venue: download throughput and 429s
+
+Not run yet: it needs an account that can read a venue's accepted papers.
+
+This run needs `uv pip install -e '.[openreview]'` and an account that can read the venue's accepted papers. `OPENREVIEW_TOKEN` works in place of the username and password.
+
+Start at one download at a time, which is the default, and raise the limit only while no 429 responses appear. OpenReview documents no rate limit.
+
+openreview-py retries 429 and 5xx responses on its own, honouring Retry-After. It prints a `Retrying request: ...` line to stdout for each retry. A rate limit therefore shows up as retry lines and a longer wall time, and as `download_failed` rows only once the SDK gives up.
+
+bash:
+
+```bash
+BENCH="$HOME/aclpubcheck-bench"
+VENUE='aclweb.org/ACL/2026/Conference'    # a venue whose accepted papers you can read
+export OPENREVIEW_USERNAME='you@example.org'
+read -rsp 'OpenReview password: ' OPENREVIEW_PASSWORD; echo; export OPENREVIEW_PASSWORD
+for n in 1 2 4; do
+  out="$BENCH/openreview-c$n"
+  time aclpubcheck --openreview-venue "$VENUE" --download-concurrency "$n" --num_workers 4 \
+    -o "$out" > "$out.stdout" 2> "$out.stderr"
+done
+for n in 1 2 4; do
+  out="$BENCH/openreview-c$n"
+  echo "concurrency $n: $(grep -c 'Retrying request' "$out.stdout") retries," \
+    "$(grep -c -e ' 429' -e 'Too Many' "$out.stdout") look rate-limited," \
+    "$(grep -c ',download_failed,' "$out/summary.csv") download_failed"
+  grep '^== ' "$out.stderr" | tail -n 1
+done
+```
+
+fish:
+
+```fish
+set BENCH $HOME/aclpubcheck-bench
+set VENUE aclweb.org/ACL/2026/Conference
+set -x OPENREVIEW_USERNAME you@example.org
+read -s -x -P 'OpenReview password: ' OPENREVIEW_PASSWORD
+for n in 1 2 4
+    set out $BENCH/openreview-c$n
+    time aclpubcheck --openreview-venue $VENUE --download-concurrency $n --num_workers 4 \
+        -o $out > $out.stdout 2> $out.stderr
+end
+for n in 1 2 4
+    set out $BENCH/openreview-c$n
+    echo "concurrency $n:" (grep -c 'Retrying request' $out.stdout) retries, \
+        (grep -c -e ' 429' -e 'Too Many' $out.stdout) look rate-limited, \
+        (grep -c ',download_failed,' $out/summary.csv) download_failed
+    grep '^== ' $out.stderr | tail -n 1
+end
+```
+
+The `fetched_at` column of each `summary.csv` holds the time of every download. Download throughput is the number of rows divided by the span between the first and last `fetched_at`; that is what to compare across concurrency levels. Record the aggregate numbers, not the per-paper files.

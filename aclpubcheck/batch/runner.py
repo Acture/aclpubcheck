@@ -41,6 +41,7 @@ _log = logging.getLogger(__name__)
 class RunOptions:
     report_root: Path
     num_workers: int = 1
+    download_concurrency: int = 1
     check: CheckConfig = field(default_factory=CheckConfig)
     check_references: bool = False
 
@@ -134,9 +135,9 @@ async def run_batch(
 ) -> tuple[PaperResult, ...]:
     """Check every record and return one terminal result per record, in input order.
 
-    At most `num_workers` checks run at once, and a PDF is read only once its check has a
-    slot. A paper whose PDF cannot be read or checked ends with its own status and the run
-    goes on.
+    Remote PDFs are downloaded at most `download_concurrency` at a time, while at most
+    `num_workers` checks run; a local PDF is read only once its check has a slot. A paper
+    whose PDF cannot be obtained or checked ends with its own status and the run goes on.
 
     Setting `cancel`, or cancelling the calling task, stops the run: unfinished papers
     end as cancelled, and RunFinished is published before returning (or re-raising).
@@ -147,18 +148,21 @@ async def run_batch(
     sink(RunStarted(table.snapshot()))
     pool = _CheckPool(max(1, options.num_workers))
     check_slots = asyncio.Semaphore(max(1, options.num_workers))
+    download_slots = asyncio.Semaphore(max(1, options.download_concurrency))
     # ids that become the same directory name get the record index in it, decided up front
     safe_id_counts = Counter(safe_id(r.paper_id) for r in records if not r.problems)
 
     async def fetch(record: PaperRecord) -> tuple[FetchedPdf, float] | None:
         started = time.perf_counter()
+        if provider.remote:
+            table.update(record.index, status=Status.DOWNLOADING)
         try:
             return await provider.fetch(record), time.perf_counter() - started
         except FetchError as error:
             status, message = error.status, str(error)
         except Exception as error:  # noqa: BLE001 -- one paper's failure must not end the run
             _log.exception("could not get the PDF of paper %s", record.paper_id)
-            status = Status.MISSING_FILE
+            status = Status.DOWNLOAD_FAILED if provider.remote else Status.MISSING_FILE
             message = describe_error(error)
         table.update(
             record.index, status=status, message=message, duration=time.perf_counter() - started
@@ -199,6 +203,15 @@ async def run_batch(
             table.update(
                 record.index, status=Status.INVALID_INPUT, message="; ".join(record.problems)
             )
+            return
+        if provider.remote:
+            async with download_slots:
+                fetched = await fetch(record)
+            if fetched is not None:
+                # downloaded: waiting for a check slot, with the PDF already known
+                table.update(record.index, status=Status.QUEUED, pdf=fetched[0])
+                async with check_slots:
+                    await check(record, *fetched)
             return
         async with check_slots:
             fetched = await fetch(record)

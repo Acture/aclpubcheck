@@ -99,9 +99,10 @@ def crash_on_marker(job: CheckJob) -> CheckOutcome:
     return run_check(job)
 
 
-# "<directory>:<count>" for wait_for_peers; spawned check processes inherit the environment,
-# so this is how a test reaches into them
+# "<directory>:<count>" for wait_for_peers, and a marker path for wait_for_marker; spawned
+# check processes inherit the environment, so this is how a test reaches into them
 BARRIER_ENV = "ACLPUBCHECK_TEST_BARRIER"
+MARKER_ENV = "ACLPUBCHECK_TEST_MARKER"
 
 
 def _wait(ready: Callable[[], bool], failure: str, timeout: float = 60) -> None:
@@ -127,6 +128,16 @@ def wait_for_peers(job: CheckJob) -> CheckOutcome:
         lambda: len(list(barrier.iterdir())) >= int(count),
         f"fewer than {count} checks were ever in flight together",
     )
+    return run_check(job)
+
+
+def wait_for_marker(job: CheckJob) -> CheckOutcome:
+    """A run_check that, for 1.pdf, waits until the marker file exists before checking."""
+    from aclpubcheck.batch.check import run_check
+
+    if job.pdf_path.name == "1.pdf":
+        marker = Path(os.environ[MARKER_ENV])
+        _wait(marker.exists, "the next PDF was not fetched while this check was running")
     return run_check(job)
 
 

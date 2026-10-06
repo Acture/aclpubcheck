@@ -152,6 +152,8 @@ class RunBatchTest(unittest.IsolatedAsyncioTestCase):
         release = asyncio.Event()
 
         class Stalling:
+            remote = True
+
             async def fetch(inner, record: PaperRecord) -> FetchedPdf:
                 if record.paper_id != "1":
                     await release.wait()
@@ -196,6 +198,8 @@ class RunBatchTest(unittest.IsolatedAsyncioTestCase):
         recorder = Recorder()
 
         class Hanging:
+            remote = False
+
             async def fetch(inner, record: PaperRecord) -> FetchedPdf:
                 await asyncio.Event().wait()
                 raise AssertionError("the event is never set")

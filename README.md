@@ -106,12 +106,19 @@ aclpubcheck --papers-yml papers.yml --papers-dir papers/ --num_workers 4 \
 | `violations` | at least one format error (margin, page size, page limit, font) |
 | `check_error` | the checker could not open the PDF, some pages could not be parsed, or the check crashed, so the check is incomplete |
 | `missing_file` | the PDF named in `papers.yml` does not exist or cannot be read |
+| `download_failed` | the PDF could not be downloaded from OpenReview |
 | `invalid_input` | the entry cannot be checked (missing or unknown paper type, repeated id, ...) |
 | `cancelled` | the run was interrupted before the paper finished |
 
 Each row has the paper id, title, type, authors and emails, the status, the error categories and messages, and the report directory. `OUTPUT_DIR` is `--output-dir` (or `-o`), a new temporary directory with `--temp-output-dir`, and `aclpubcheck-batch` otherwise. Reports are written to `OUTPUT_DIR/reports/<id>-<sha256 prefix>/`: the JSON and PNG reports, plus `check.log` with the checker's output. A revised PDF therefore never overwrites the reports of an earlier version; checking the same PDF again replaces its reports. `OUTPUT_DIR/input.json` records the papers exactly as they were loaded.
 
-The summary is rewritten as papers change state (at most about once a second). Ctrl-C cancels the run: unfinished papers are marked `cancelled` and the command exits with status 130. If the process is killed outright, the rows it did not finish still show `queued` or `checking`. The exit status is 0 when every paper was processed, whatever the results; 1 when the input lists no papers, or when the run fails unexpectedly (with a traceback); 2 for usage and input errors, including an unreadable `papers.yml` and an unwritable output directory; and 130 when cancelled.
+The summary is rewritten as papers change state (at most about once a second). Ctrl-C cancels the run: unfinished papers are marked `cancelled` and the command exits with status 130. If the process is killed outright, the rows it did not finish still show `queued`, `downloading` or `checking`. The exit status is 0 when every paper was processed, whatever the results; 1 when the input lists no papers, or when the run fails unexpectedly (with a traceback, e.g. a network error while listing OpenReview papers); 2 for usage and input errors, including an unreadable `papers.yml`, an unwritable output directory and a failed OpenReview username/password login; and 130 when cancelled.
+
+Papers can also be read straight from an OpenReview venue. The accepted papers are the notes whose `venueid` is the venue id, and the PDF is taken from the note's `pdf` field (choose another field with `--openreview-pdf-field`). This needs `pip install openreview-py` and either `OPENREVIEW_USERNAME`/`OPENREVIEW_PASSWORD` (a two-factor code is asked for on the terminal) or `OPENREVIEW_TOKEN`; without credentials only public notes are visible. Downloads run one at a time unless `--download-concurrency` is raised, since OpenReview does not document a rate limit. Each downloaded PDF is kept as `OUTPUT_DIR/pdfs/<number>-<sha256 prefix>.pdf`, and the summary records the note id, the PDF reference with its modification time and the download time:
+
+```bash
+aclpubcheck --openreview-venue aclweb.org/ACL/2026/Conference --output-dir acl2026-check
+```
 
 Known limitation: a check has no time or memory limit, so a pathological PDF can occupy a worker for a long time.
 
