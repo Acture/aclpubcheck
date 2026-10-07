@@ -45,10 +45,11 @@ jobs:
           uv venv --quiet "$RUNNER_TEMP/base-venv"
           uv pip install --python "$RUNNER_TEMP/base-venv/bin/python" "$RUNNER_TEMP/base"
       - name: Time the base version and this one
+        shell: bash  # with pipefail, so a failed run fails the step
         env:
           BASE: ${{ inputs.base || 'main' }}
           PAPERS_YML: ${{ runner.temp }}/aclpub2/examples/sigdial/papers.yml
         run: |
           python benchmarks/time_path_mode.py "$PAPERS_YML" --workers 1,4 \
             "$BASE=$RUNNER_TEMP/base-venv/bin/python" "this version=$(command -v python)" \
-            >> "$GITHUB_STEP_SUMMARY"
+            | tee -a "$GITHUB_STEP_SUMMARY"

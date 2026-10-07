@@ -39,14 +39,17 @@ def time_version(python: str, groups: dict[str, list[str]], out: Path, workers: 
     started = time.perf_counter()
     for paper_type, files in groups.items():
         command = [python, "-m", "aclpubcheck", "-p", paper_type, "--num_workers", str(workers)]
-        subprocess.run(
+        done = subprocess.run(
             [*command, "-o", str(out / paper_type), *files],
             cwd=out,
             env=env,
             stdin=subprocess.DEVNULL,
             stdout=subprocess.DEVNULL,
-            check=True,
+            stderr=subprocess.PIPE,
+            text=True,
         )
+        if done.returncode != 0:
+            raise SystemExit(f"{python} -m aclpubcheck failed:\n{done.stderr[-4000:]}")
     seconds = time.perf_counter() - started
     papers = sum(len(files) for files in groups.values())
     written = len(list(out.rglob("errors-*.json")))
