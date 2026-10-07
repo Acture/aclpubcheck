@@ -9,6 +9,7 @@ on:
       base:
         description: Version to time against (branch, tag or commit)
         default: main
+  pull_request:  # fork test only
 
 permissions:
   contents: read
@@ -37,7 +38,7 @@ jobs:
           ACLPUBCHECK_TEST_PAPERS_YML: ${{ runner.temp }}/aclpub2/examples/sigdial/papers.yml
       - name: Install the base version
         env:
-          BASE: ${{ inputs.base }}
+          BASE: ${{ inputs.base || 'main' }}
         run: |
           git fetch --quiet --depth 1 origin "$BASE"
           git worktree add --quiet --detach "$RUNNER_TEMP/base" FETCH_HEAD
@@ -45,7 +46,7 @@ jobs:
           uv pip install --python "$RUNNER_TEMP/base-venv/bin/python" "$RUNNER_TEMP/base"
       - name: Time the base version and this one
         env:
-          BASE: ${{ inputs.base }}
+          BASE: ${{ inputs.base || 'main' }}
           PAPERS_YML: ${{ runner.temp }}/aclpub2/examples/sigdial/papers.yml
         run: |
           python benchmarks/time_path_mode.py "$PAPERS_YML" --workers 1,4 \
